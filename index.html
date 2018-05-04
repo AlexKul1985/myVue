@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<body>
+	<div id="app">
+		<!-- <div class="form-group">
+			<input type="text" class="title">
+			<! <input type="button" value="ADD" @click = "addItem"> -->
+			<!-- <input type="button" value="ADD" class="add">
+			<input type="button" value="SHUFFLE" @click = "shuffle">
+			<input type="button" value="SHUFFLE" class="shuffle"> -->
+		<!-- </div>
+		<ul> -->
+			<!-- <li v-for="(item,index) in datas" >{{item.title}}</li> -->
+		<!-- 	<li class="item"></li>
+		</ul>  -->
+		<!-- <div class="form-group">
+				<input type="text" class="title">
+				
+				<input type="button" value="ADD" class="add">
+				
+				<input type="button" value="SHUFFLE" class="shuffle">
+			</div>
+			<ul>
+				
+				<li class="item">{{info}}</li>
+			</ul>
+		 -->
+	</div>
+	<!-- <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script> -->
+	<script src='bower_components/lodash/lodash.js'></script>
+	<script>
+		let datas = [
+				{
+					id:1,
+					title:'One'
+				},
+				{
+					id:2,
+					title:'Two'
+				},
+				{
+					id:3,
+					title:'Three'
+				},
+				{
+					id:4,
+					title:'Four'
+				},
+				{
+					id:5,
+					title: 'Five'
+				}
+				];
+
+		// new Vue({
+		// 	el:"#app",
+		// 	data:{
+		// 		datas,
+				
+		// 		title:''
+		// 	},
+		// 	methods:{
+		// 		addItem(){
+		// 			if(this.title.trim() == '') return;
+		// 			this.datas.push({
+		// 				id:this.maxId + 1,
+		// 				title: this.title
+		// 			})
+
+		// 		},
+		// 		shuffle(){
+		// 			this.datas = _.shuffle(this.datas)
+		// 		}
+		// 	},
+		// 	computed:{
+		// 		maxId(){
+		// 			return this.datas.length;
+		// 		}
+		// 	}
+		// });
+
+		class myVue {
+			constructor(config){
+
+				this.$el = document.querySelector(config.el);
+				this.$template = config.template;
+				this.$data = config.data;
+				this.methods = config.methods;
+				Object.keys(this.$data).forEach((field) => {
+					if(Array.isArray(this.$data[field])){
+						this.$data[field].forEach((item) => {
+							if(item instanceof Object){
+								Object.keys(item).forEach((sub_item) => {
+									Object.defineProperty(item,sub_item,{
+
+										get:function(){
+											return item[sub_item];
+										},
+										set: function(val){
+											item[sub_item] = val;
+
+										}
+									})
+									
+
+								})
+							}
+						})
+					}
+					else {
+						Object.defineProperty(this,field,{
+						get: function(){
+							return this.$data[field];
+						},
+						set: function(val){
+							this.$data[field] = val;
+							console.log(this.$data[field])
+							this.refresh();
+						}
+					})
+					}
+					
+							
+				})
+				this.render();
+
+			}
+			render(){
+				this.$el.innerHTML = this._vForRender(this._parseTemplate());
+			}
+			_vForRender(temp){
+				let reg = /<(\s*.+\s*)v-for\s*=\s*"\((\s*.+\s*),(\s*.+\s*),(\s*.+\s*)\)\s+in\s+(.+)">\s*{{\s*(.+)\s*}}\s*/gi;
+
+				let res = temp.replace(reg,(match,item) => {
+					console.log(item);
+
+				})
+				console.log( res);
+				return res;
+
+			}
+			refresh(){
+				 this.render();
+			}
+
+			_parseTemplate(){
+				let ctx = this;
+				let res = null;
+				if(this.$template){
+					 res = this.$template.replace( /{{(.*)}}/gi,function(match,item){
+					console.log(item)
+					if( item in ctx.$data ){
+						return ctx.$data[item];
+					}
+
+				})
+				}
+				else {
+					let str = this.$el.innerHTML;
+					res = str.replace( /{{(.*)}}/gi,function(match,item){
+					console.log(item)
+					if( item in ctx.$data ){
+						return ctx.$data[item];
+					}
+
+				})
+				}
+				
+				return res;
+
+			}
+		}
+
+		let my = new myVue({
+			el:'#app',
+			template:
+			`
+				<div class="form-group">
+					<input type="text" class="title">
+					
+					<input type="button" value="ADD" class="add">
+					
+					<input type="button" value="SHUFFLE" class="shuffle">
+					<input type="button" value="SHUFFLE REAL" class="shuffle_real">
+				</div>
+				<ul>
+					
+					<li class="item" v-for="(item,key,index) in info"> {{ item.title }} </li>
+				</ul>
+
+			`,
+			data:{
+				info:[{id:1,title:'Alex'},{id:2, title: 'Micha'},{id:3, title: "Kolia"}]
+
+			},
+			methods:{
+
+
+			}
+		});
+
+		let li = document.querySelectorAll('ul li')[0];
+		let btn = document.querySelector('.add');
+		let shuffle = document.querySelector('.shuffle');
+		let shuffle_real= document.querySelector('.shuffle_real');
+		let ul = document.querySelector('ul');
+		btn.addEventListener('click',function(){
+			let l = li.cloneNode(true);
+			ul.appendChild(l);
+		});
+		shuffle.addEventListener('click',function(){
+			let new_li = "<li>NEW TEXT</li>"
+			ul.children[1].insertAdjacentHTML("afterEnd",new_li);
+
+		});
+		shuffle_real.addEventListener('click',function(){
+			let new_li = "<li>NEW TEXT</li>"
+			ul.children[1].insertAdjacentHTML("afterEnd",new_li);
+
+		});
+		
+		
+console.log(my)
+
+//<\s*(.+)\s+v-for\s*=\s*"\(\s*(.+)\s*,\s*(.+)\s*,(.+)\s*\)\s+in\s+(.+)">\s*{{\s*(.+)\s*}}\s*
+
+//<(\s*.+\s*)v-for\s*=\s*"\((\s*.+\s*),(\s*.+\s*),(.+\s*)\)\s+in\s+(.+)">\s*{{\s*(.+)\s*}}\s*
+
+//<(\s*.+\s*)v-for\s*=\s*"\((\s*.+\s*),?(\s*.+\s*)?,?(.+\s*)?\)\s+in\s+(.+)">\s*{{\s*(.+)\s*}}\s*
+		
+	</script>
+</body>
+</html>
